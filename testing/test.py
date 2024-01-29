@@ -1,6 +1,6 @@
-import ftp
+import sftp
 
-core = ftp.core
+core = sftp.core
 
 core.createPacket(core,"/Users/peerasit/ku_study/network/projectProtocol/pic.png",chunk=4096)
 print(core.getChunkSize(core))
