@@ -2,6 +2,7 @@ from socket import *
 from datetime import datetime
 import sys
 import os
+import sftp
 
 
 
@@ -29,19 +30,40 @@ try:
     buffer = [] # buffer for packet comming
 
     while True:
-        packet, clietAddress = server.recvfrom(chunkSize)
+        package, clietAddress = server.recvfrom(chunkSize)
 
-        if packet == b'END...':
-            terminal("[END]") # In testing
-            f = open("Compress.png","wb")
+        package = package.decode().split("/")
+        header_package = package[0]
+        content_package = package[1]
 
-            for i in range(len(buffer)):
-                buff = buffer[i]
-                f.write(buff)
-            f.close
-            buffer.clear()
-            continue
+        match header_package:
+            case "[PCT]":                          # Connection package
+                pct_header = header_package
+                pct_content = content_package
+                print("GET",pct_header,pct_content)
 
-        buffer.append(packet)  
+                ct_package = sftp.createCTPackage(int(pct_content)) # Create CT Package
+                ct = ct_package.decode().split("/")                 # Split header and content
+                print("PUSH",ct[0],ct[1])
+
+                server.sendto(ct_package,clietAddress)              # Sent CT Package
+
+            case _:
+                print("[OPERATION ERROR]")
+
+
+        # if packet == b'END...':
+        #     terminal("[END]") # In testing
+        #     f = open("Compress.png","wb")
+
+        #     for i in range(len(buffer)):
+        #         buff = buffer[i]
+        #         f.write(buff)
+        #     f.close
+        #     buffer.clear()
+        #     continue
+
+        # terminal(package)
+        # buffer.append(packet)  
 except:
     print(Exception())
