@@ -1,8 +1,10 @@
 from socket import *
 from datetime import datetime
-import sftp
+from sftp import packet as packet
+from sftp import core as core
 import threading
 import time
+import os
 
 # Config
 server_name = 'localhost'
@@ -16,10 +18,13 @@ connectId = None    # Connection ID
 
 operations = {
     "GET" : "[GET]",
-    "PUSH" : "[PUSH]",
+    "PSH" : "[PUSH]",
+    "RTP" : "[RTP]",
 
     "CT" : "[CT]",      # Contact
     "PCT" : "[PCT]",    # PreContact
+    "TFC" : "[TFC]",
+    "END" : "[END]",
 
     "ERR" : "[ERROR]"
 }
@@ -32,25 +37,22 @@ def terminal(message,operation=None):
 
 # Init client
 client_socket = socket(AF_INET, SOCK_DGRAM) # UDP
-client_socket.settimeout(timeOut)
-core = sftp.core
+client_socket.settimeout(timeOut)           # Set Time Out
 
 
 # Connection Phase
-con_package = sftp.createPCTPackage()   # Create PCT
-try:    # Connection establishment
-    client_socket.sendto(con_package,(server_name,port))    # Send PCT
+con_packet = packet.createPCTPacket()   # Create PCT
+try:    # Connection Establishment
+    client_socket.sendto(con_packet,(server_name,port))     # Send PCT
     message,server = client_socket.recvfrom(chunkSize)      # Wait CT Response
     message = message.decode().split("/")                   # Divide Header and Content
 
-    if message[0] == operations["CT"]:                # Recive connection knownlagement
-        connect = True                    # Connected
-        connectId = message[1]              # CT Sequence
-        # print("GET",message[0],message[1])
+    if message[0] == operations["CT"]:              # Recive connection knownlagement
+        connect = True                              # Connected
+        connectId = message[1]                      # CT Sequence
         terminal(message[0] + message[1], "GET")
 
 except timeout:
-    # print("[ERROR]:","Can't connect to server because server not response.")
     terminal("Can't connect to server because server not response.", operations["ERR"])
     exit()
 
@@ -61,6 +63,7 @@ core.createChunk(core,file,"png",chunk=chunkSize,verbose=False)    # Create pack
 
 if connect:
     terminal("Client connected to server.")
+    # data = packet.createPacket(80,10,b"Hello world")
         
 
 
