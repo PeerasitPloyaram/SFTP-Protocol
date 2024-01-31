@@ -7,19 +7,35 @@ from socket import *
 # Retrive number in range 1 - 99
 def randomSequence():return str(randrange(0,98))
 
+class packet:
+    # Create PCT Packet
+    def createPCTPacket():
+        operation = "[PCT]"
+        sequence = randomSequence().encode()
+        return operation.encode() +b"/"+sequence        # [PCT]/Sequence
 
-# Create PCT Package
-def createPCTPackage():
-    pct = "[PCT]"
-    sequence = randomSequence().encode()
-    return pct.encode() +b"/"+sequence  # [PCT]/Sequence
+    # Create CT Packet
+    def createCTPacket(sequence):
+        operation = "[CT]"
+        sequence_ack = str(sequence + 1).encode()
+        return operation.encode() +b"/"+sequence_ack    #[CT]/Sequence + 1
+
+    # Create END Packet
+    def createEndPacket():
+        operation = "[END]"
+        return operation.encode() + b"/"                # [END]/
+
+    # Create File Packet
+    def createPacket(length,number, data):
+        operation = "[PUSH]"
+        lengthPacket = length
+        packageNumber = number
+        payload = data
+        id = "12"
+        checkSum = "1234"
+
+        return operation.encode() + b"/" + str(lengthPacket).encode() + b":" + str(packageNumber).encode() + b":" +str(id).encode() + b":" + str(checkSum).encode() + b":" +payload
     
-
-# Create CT Package
-def createCTPackage(sequence):
-    operation = "[CT]"
-    sequence_ack = str(sequence + 1).encode()
-    return operation.encode() +b"/"+sequence_ack    #[CT]/Sequence + 1
 
 
 class core:
