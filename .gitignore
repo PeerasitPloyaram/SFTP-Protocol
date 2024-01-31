@@ -5,3 +5,5 @@
 *.jpg
 *.txt
 *.docs
+
+__pycache__/
