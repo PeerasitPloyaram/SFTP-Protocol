@@ -1,18 +1,26 @@
 from socket import *
 from datetime import datetime
+from sftp import packet as pc
 import sys
 import os
-import sftp
 
 
 
 port = 13000 # Default Port
 chunkSize = 4096
 
-def terminal(word):
-        print(datetime.now().strftime("%H:%M:%S"),": ",word)
+def terminal(message,operation=None):
+    if operation == None:
+        print(datetime.now().strftime("%H:%M:%S"),": ",message)
+    else: print(datetime.now().strftime("%H:%M:%S"),": ",operation, message)
 
-for arg in range(1,len(sys.argv)):
+
+if __name__ != "__main__":
+    exit
+
+
+
+for arg in range(1,len(sys.argv)):  # Argument
     if (sys.argv[arg] == "-p" or sys.argv[arg] == "--port"):
         port = int(sys.argv[arg + 1])
 
@@ -30,23 +38,32 @@ try:
     buffer = [] # buffer for packet comming
 
     while True:
-        package, clietAddress = server.recvfrom(chunkSize)
+        packet, clietAddress = server.recvfrom(chunkSize)
 
-        package = package.decode().split("/")
-        header_package = package[0]
-        content_package = package[1]
+        packet = packet.decode().split("/")
+        header_packet = packet[0]
+        content_packet = packet[1]
 
-        match header_package:
+        match header_packet:
             case "[PCT]":                          # Connection package
-                pct_header = header_package
-                pct_content = content_package
-                print("GET",pct_header,pct_content)
+                pct_header = header_packet
+                pct_content = content_packet
+                terminal(pct_header+pct_content,"GET")
 
-                ct_package = sftp.createCTPackage(int(pct_content)) # Create CT Package
-                ct = ct_package.decode().split("/")                 # Split header and content
-                print("PUSH",ct[0],ct[1])
+                ct_packet = pc.createCTPacket(int(pct_content)) # Create CT Package
+                ct = ct_packet.decode().split("/")                 # Split header and content
+                terminal(ct[0]+ct[1],"PUSH")
 
-                server.sendto(ct_package,clietAddress)              # Sent CT Package
+                server.sendto(ct_packet,clietAddress)              # Sent CT Package
+
+            case "[PUSH]":
+                terminal(packet, "GET")
+                pass
+
+            case "[END]":
+                terminal("[END]","GET")
+                terminal("Server has been stop.")
+                break
 
             case _:
                 print("[OPERATION ERROR]")
