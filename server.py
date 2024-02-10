@@ -6,8 +6,10 @@ import os
 
 
 
-port = 13000 # Default Port
-chunkSize = 4096
+port = 13000        # Default Port
+
+# 1024 = 1KB
+chunkSize = 10240   # 1MB
 
 def terminal(message,operation=None):
     if operation == None:
@@ -31,18 +33,38 @@ server = socket(AF_INET,SOCK_DGRAM)
 server.bind(("",port))
 
 
+class fileBuffer:
+    def __init__(self,numberPayload):
+        self.numberPayload = numberPayload
+        self.chunkList = []
+        self.numChunk = 0
+
+    def appendChunk(self,chunk): self.chunkList.append(chunk)
+        
+
+
 try:
     print("Server start port:",port)
     print("Server startup from",datetime.now())
     print("===================")
+
     buffer = [] # buffer for packet comming
 
     while True:
         packet, clietAddress = server.recvfrom(chunkSize)
 
-        packet = packet.decode().split("/")
-        header_packet = packet[0]
-        content_packet = packet[1]
+        print("||Packet Encode: ",packet)
+        packet = packet.decode(errors="ignore")
+        print("||Packet Decode: ",packet)
+
+        ea = packet.split("/",1)
+
+        header_packet = ea[0]
+        content_packet = ea[1]
+
+        print("||Header is: ",header_packet)
+        print("||Content is: ",content_packet)
+
 
         match header_packet:
             case "[PCT]":                          # Connection package
@@ -57,8 +79,19 @@ try:
                 server.sendto(ct_packet,clietAddress)              # Sent CT Package
 
             case "[PUSH]":
-                terminal(packet, "GET")
-                pass
+                print(f"========================Recive Packet [PUSH]======================")
+                print("||Header is: ",header_packet)
+                print("||Content is: ",content_packet)
+
+                # full_payload = content_packet.split(":",4)
+                totalNumber, numberPacket, id, checksum, payload = content_packet.split(":",4)
+
+                print("||Total Number Payload is: ",totalNumber)
+                print("||Packet Number: ",numberPacket)
+                print("||Id: ",id)
+                print("||Checksum: ",checksum)
+                print("||Payload: ",payload)
+                
 
             case "[END]":
                 terminal("[END]","GET")
