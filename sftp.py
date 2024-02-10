@@ -5,37 +5,31 @@ from socket import *
 
 # Random number from 0 - 98
 # Retrive number in range 1 - 99
-def randomSequence():return str(randrange(0,98))
+def randomSequence()-> str:return str(randrange(0,98))
 
 class packet:
     # Create PCT Packet
-    def createPCTPacket():
+    def createPCTPacket()-> bytearray:
         operation = "[PCT]"
         sequence = randomSequence().encode()
         return operation.encode() +b"/"+sequence        # [PCT]/Sequence
 
     # Create CT Packet
-    def createCTPacket(sequence):
+    def createCTPacket(sequence)-> bytearray:
         operation = "[CT]"
         sequence_ack = str(sequence + 1).encode()
         return operation.encode() +b"/"+sequence_ack    #[CT]/Sequence + 1
 
     # Create END Packet
-    def createEndPacket():
+    def createEndPacket()-> bytearray:
         operation = "[END]"
         return operation.encode() + b"/"                # [END]/
 
     # Create File Packet
-    def createPacket(length,number, data):
+    def createPacket(totalNumberPayload,packetNumber,id,checksum ,payload)-> bytearray:
         operation = "[PUSH]"
-        lengthPacket = length
-        packageNumber = number
-        payload = data
-        id = "12"
-        checkSum = "1234"
-
-        return operation.encode() + b"/" + str(lengthPacket).encode() + b":" + str(packageNumber).encode() + b":" +str(id).encode() + b":" + str(checkSum).encode() + b":" +payload
-    
+        return operation.encode() + b"/" + str(totalNumberPayload).encode() + b":" + str(packetNumber).encode() + b":" + str(id).encode() + b":" + str(checksum).encode()+ b":" + payload
+        # [PUSH]/totalNumberPayload:packetNumber:id:checksum:payload
 
 
 class core:
