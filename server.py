@@ -6,11 +6,10 @@ import os
 
 
 
-port = 13000        # Default Port
-
-# 1024 = 1KB
-chunkSize = 10240   # 1MB
-
+port = 13000            # Default Port
+                        # 1024 = 1KB
+chunkSize = 10240       # 1MB
+server_file_id = []     # For Save ID Packet Recive
 
 def terminal(message,operation=None)-> None:
     if operation == None:
@@ -27,6 +26,17 @@ def debugPacket(content:bytearray,)-> None:
         print("||Checksum: ",checksum)
         # print("||Payload: ",payload)
 
+def haveId(id):                 # Check Id in Server File ID
+    for _ in server_file_id:
+        if id == _:
+            return 1
+    return 0
+
+def findIndex(id):
+    for _ in range(len(server_file)):
+        if server_file[_].getId() == id:
+            return _
+    return 0
 
 if __name__ != "__main__":
     exit
@@ -44,18 +54,24 @@ server = socket(AF_INET,SOCK_DGRAM)
 server.bind(("",port))
 
 
-class fileBuffer:
-    def __init__(self,numberPayload=None):
-        self.id = None
-        self.numberPayload = numberPayload
-        self.chunkList = []
-        self.numChunk = 0
+class tempFile():
+    def __init__(self,id,totalNumberPacket,numberPayload=None):
+        self.id = id
+        self.chunkList = [""] * int(totalNumberPacket)
+
+        self.numberPayload = None
+        self.numChunk = None
 
     def appendChunk(self,chunk)-> None: self.chunkList.append(chunk)
+    def addChunkByLoc(self,index ,chunk)-> None:
+        self.chunkList[index] = chunk
+    def getAllChunk(self): return self.chunkList
 
     def setId(self, id)-> None: self.id = id
     def getId(self): return self.id
         
+
+server_file = []    # Save File Comming
 
 
 try:
@@ -63,7 +79,6 @@ try:
     print("Server startup from",datetime.now())
     print("===================")
 
-    fbuffer = fileBuffer # buffer for packet comming
 
     while True:
         packet, clietAddress = server.recvfrom(chunkSize)
@@ -94,29 +109,45 @@ try:
                 server.sendto(ct_packet,clietAddress)              # Sent CT Package
 
             case "[PUSH]":
-                print(f"========================Recive Packet [PUSH]======================")
-                # print("||Header is: ",header_packet)
-                # print("||Content is: ",content_packet)
+                print(f"=============Recive Packet [PUSH]===============")
 
-                # full_payload = content_packet.split(":",4)
-                totalNumber, numberPacket, id, checksum, payload = content_packet.split(":",4)
-
-                print("||Total Number Payload is: ",totalNumber)
+                totalNumber, numberPacket, idPacket, checksum, payload = content_packet.split(":",4)
+                numberPacket = int(numberPacket)
+                # print("||Total Number Payload is: ",totalNumber)
                 print("||Packet Number: ",numberPacket)
-                print("||Id: ",id)
-                print("||Checksum: ",checksum)
+                print("||Id: ",idPacket)
+                # print("||Checksum: ",checksum)
                 # print("||Payload: ",payload)
 
+                if not haveId(idPacket):
+                    server_file_id.append(idPacket)         # Add ID Packet to Server
+                    file = tempFile(idPacket,totalNumber)   # Create New File
+                    server_file.append(file)                # Append File to server
+                    
+                indexFile = findIndex(idPacket)
+                file = server_file[indexFile]               # File Buffer for ID
+                #==========
+                file.addChunkByLoc(numberPacket, payload)   # Add Chunk to File Buffer
+                    
 
                 
             case "[TFC]":
-                lengthPacket, numberPacket, id = content_packet.split(":", 3)
+                lengthPacket, numberOfPacket, idPacket = content_packet.split(":", 3)
 
                 lengthPacket = int(lengthPacket)
-                numberPacket = int(numberPacket)
-                id = str(id)
+                numberOfPacket = int(numberOfPacket)
+                idPacket = int(idPacket)
 
-                print(lengthPacket, numberPacket, id)
+                print("TFC Packet: ",lengthPacket, numberOfPacket, idPacket)
+
+
+                for file in server_file:
+                    id = file.getId()
+                    print(f"file id is: {id}")
+                    print(f"file index location: {findIndex(id)}")
+                    # for i in file.getAllChunk():
+                    #     print(f"||{i}||")
+
 
                 
             case "[END]":
