@@ -40,11 +40,14 @@ class packet:
     # Create File Packet
     def createPacket(totalNumberPayload,packetNumber,id,checksum ,payload)-> bytearray:
         operation = operations.push                     # [PUSH]
-        return operation.encode() + b"/" + str(totalNumberPayload).encode() + b":" + str(packetNumber).encode() + b":" + str(id).encode() + b":" + str(checksum).encode()+ b":" + payload
+        return id, operation.encode() + b"/" + str(totalNumberPayload).encode() + b":" + str(packetNumber).encode() + b":" + str(id).encode() + b":" + str(checksum).encode()+ b":" + payload
+        # ID Packet
         # [PUSH]/totalNumberPayload:packetNumber:id:checksum:payload
     
-    def createTFCPacket()-> bytearray:
+    def createTFCPacket(lengthPacket, totalNumberPayload, id)-> bytearray:
         operation = operations.tfc                      # [TFC]
+        return operation.encode() + b"/" + str(lengthPacket).encode() + b":" + str(totalNumberPayload).encode() + b":" + str(id).encode()
+
 
 
 class core:
@@ -52,18 +55,6 @@ class core:
         self.chunkSize = 1024   # Default 1KB
         self.Status = None      # Status
         self.operation = None
-
-        # self.operations = {     # OPERATIONS
-        #     1: "GET",           # Get packet
-        #     2: "PUSH",          # Send packet
-        #     3: "REP",           # Retransmit packet
-        #     10: "PCT",      # Precontact
-        #     11: "CT",       # Contact
-        
-        # # === WARNING ===
-
-        #     20: "ERROR"         # Error
-        # }
 
     def createChunk(self, file,type, chunk,verbose=False):  # Create Chunk of file
         self.chunkList = []    # Chunk buffer
