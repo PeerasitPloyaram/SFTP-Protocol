@@ -11,10 +11,21 @@ port = 13000        # Default Port
 # 1024 = 1KB
 chunkSize = 10240   # 1MB
 
-def terminal(message,operation=None):
+
+def terminal(message,operation=None)-> None:
     if operation == None:
         print(datetime.now().strftime("%H:%M:%S"),": ",message)
     else: print(datetime.now().strftime("%H:%M:%S"),": ",operation, message)
+
+
+def debugPacket(content:bytearray,)-> None:
+        totalNumber, numberPacket, id, checksum, payload = content.split(":",4)
+        print(f"========================Recive Packet [PUSH]======================")
+        print("||Total Number Payload is: ",totalNumber)
+        print("||Packet Number: ",numberPacket)
+        print("||Id: ",id)
+        print("||Checksum: ",checksum)
+        # print("||Payload: ",payload)
 
 
 if __name__ != "__main__":
@@ -34,12 +45,16 @@ server.bind(("",port))
 
 
 class fileBuffer:
-    def __init__(self,numberPayload):
+    def __init__(self,numberPayload=None):
+        self.id = None
         self.numberPayload = numberPayload
         self.chunkList = []
         self.numChunk = 0
 
-    def appendChunk(self,chunk): self.chunkList.append(chunk)
+    def appendChunk(self,chunk)-> None: self.chunkList.append(chunk)
+
+    def setId(self, id)-> None: self.id = id
+    def getId(self): return self.id
         
 
 
@@ -48,22 +63,22 @@ try:
     print("Server startup from",datetime.now())
     print("===================")
 
-    buffer = [] # buffer for packet comming
+    fbuffer = fileBuffer # buffer for packet comming
 
     while True:
         packet, clietAddress = server.recvfrom(chunkSize)
 
-        print("||Packet Encode: ",packet)
+        # print("||Packet Encode: ",packet)
         packet = packet.decode(errors="ignore")
-        print("||Packet Decode: ",packet)
+        # print("||Packet Decode: ",packet)
 
         ea = packet.split("/",1)
 
         header_packet = ea[0]
         content_packet = ea[1]
 
-        print("||Header is: ",header_packet)
-        print("||Content is: ",content_packet)
+        # print("||Header is: ",header_packet)
+        # print("||Content is: ",content_packet)
 
 
         match header_packet:
@@ -80,8 +95,8 @@ try:
 
             case "[PUSH]":
                 print(f"========================Recive Packet [PUSH]======================")
-                print("||Header is: ",header_packet)
-                print("||Content is: ",content_packet)
+                # print("||Header is: ",header_packet)
+                # print("||Content is: ",content_packet)
 
                 # full_payload = content_packet.split(":",4)
                 totalNumber, numberPacket, id, checksum, payload = content_packet.split(":",4)
@@ -90,9 +105,20 @@ try:
                 print("||Packet Number: ",numberPacket)
                 print("||Id: ",id)
                 print("||Checksum: ",checksum)
-                print("||Payload: ",payload)
-                
+                # print("||Payload: ",payload)
 
+
+                
+            case "[TFC]":
+                lengthPacket, numberPacket, id = content_packet.split(":", 3)
+
+                lengthPacket = int(lengthPacket)
+                numberPacket = int(numberPacket)
+                id = str(id)
+
+                print(lengthPacket, numberPacket, id)
+
+                
             case "[END]":
                 terminal("[END]","GET")
                 terminal("Server has been stop.")
