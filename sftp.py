@@ -7,29 +7,44 @@ from socket import *
 # Retrive number in range 1 - 99
 def randomSequence()-> str:return str(randrange(0,98))
 
+class operations:
+
+    pct = "[PCT]"       # PreContact
+    ct = "[CT]"         # Contact
+
+    get = "[GET]"       # GET
+    push = "[PUSH]"     # PUSH
+
+    end = "[END]"       # END
+    tfc = "[TFC]"       # Transfer Complete
+    err = "[ERROR]"     # Error
+
 class packet:
     # Create PCT Packet
     def createPCTPacket()-> bytearray:
-        operation = "[PCT]"
+        operation = operations.pct                      # [PCT]
         sequence = randomSequence().encode()
         return operation.encode() +b"/"+sequence        # [PCT]/Sequence
 
     # Create CT Packet
     def createCTPacket(sequence)-> bytearray:
-        operation = "[CT]"
+        operation = operations.ct                       # [CT]
         sequence_ack = str(sequence + 1).encode()
         return operation.encode() +b"/"+sequence_ack    #[CT]/Sequence + 1
 
     # Create END Packet
     def createEndPacket()-> bytearray:
-        operation = "[END]"
+        operation = operations.end                      # [END]
         return operation.encode() + b"/"                # [END]/
 
     # Create File Packet
     def createPacket(totalNumberPayload,packetNumber,id,checksum ,payload)-> bytearray:
-        operation = "[PUSH]"
+        operation = operations.push                     # [PUSH]
         return operation.encode() + b"/" + str(totalNumberPayload).encode() + b":" + str(packetNumber).encode() + b":" + str(id).encode() + b":" + str(checksum).encode()+ b":" + payload
         # [PUSH]/totalNumberPayload:packetNumber:id:checksum:payload
+    
+    def createTFCPacket()-> bytearray:
+        operation = operations.tfc                      # [TFC]
 
 
 class core:
