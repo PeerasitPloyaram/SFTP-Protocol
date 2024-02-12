@@ -19,7 +19,7 @@ def terminal(message,operation=None)-> None:
 
 def debugPacket(content:bytearray,)-> None:
         totalNumber, numberPacket, id, checksum, payload = content.split(":",4)
-        print(f"========================Recive Packet [PUSH]======================")
+        print(f"------------------Recive Packet [PUSH]------------------")
         print("||Total Number Payload is: ",totalNumber)
         print("||Packet Number: ",numberPacket)
         print("||Id: ",id)
@@ -32,15 +32,40 @@ def haveId(id):                 # Check Id in Server File ID
             return 1
     return 0
 
-def findIndex(id):
-    for _ in range(len(server_file)):
+def findIndex(id):                          # Find Id Packet in Server Buffer
+    for _ in range(len(server_file)):       # and Return Index Id Packet Location
         if server_file[_].getId() == id:
             return _
     return 0
 
+def writeFile(filename, allChunk)->None:    # Compress file
+    f = open(filename,"wb")
+
+    try:
+        for chunk in allChunk:
+            f.write(chunk)
+        return 1
+    except:
+        return 0
+    finally:
+        f.close
+
+def validatePacket(validate, idTempFile):
+    re_packet = []                              # Buffer ReTransmit Packet
+    file = server_file[findIndex(idTempFile)]   # Find File Temp List to File Individual
+    f = file.getAllRecivePacketNumber()         # Get All Packet Number Recive
+
+    for _ in range(validate):
+        # print(f[_], _)
+        if f[_] != _:
+            re_packet.append(_)
+            
+    return re_packet
+
+
+
 if __name__ != "__main__":
     exit
-
 
 
 for arg in range(1,len(sys.argv)):  # Argument
@@ -50,23 +75,28 @@ for arg in range(1,len(sys.argv)):  # Argument
     if (sys.argv[arg] == "-t" or sys.argv[arg] == "--test"):
          pass
 
-server = socket(AF_INET,SOCK_DGRAM)
-server.bind(("",port))
+server = socket(AF_INET,SOCK_DGRAM) # UDP
+server.bind(("",port))              # Bind Port 
 
 
-class tempFile():
-    def __init__(self,id,totalNumberPacket,numberPayload=None):
+class tempFile():       # File for Save Information Packet 
+    def __init__(self,id,totalNumberPacket):
         self.id = id
         self.chunkList = [""] * int(totalNumberPacket)
+        self.numberPacketRecieve = [""] * int(totalNumberPacket)
 
-        self.numberPayload = None
-        self.numChunk = None
-
+    # Chunk
     def appendChunk(self,chunk)-> None: self.chunkList.append(chunk)
-    def addChunkByLoc(self,index ,chunk)-> None:
-        self.chunkList[index] = chunk
+    def addChunkByLoc(self,index ,chunk)-> None: self.chunkList[index] = chunk
     def getAllChunk(self): return self.chunkList
 
+    # Packet Number
+    def appendRecivePacketNumber(self,index,numberPacket:int)->None:
+        self.numberPacketRecieve[index] = numberPacket
+    def getAllRecivePacketNumber(self):
+        return self.numberPacketRecieve
+    
+    # ID
     def setId(self, id)-> None: self.id = id
     def getId(self): return self.id
         
@@ -77,45 +107,52 @@ server_file = []    # Save File Comming
 try:
     print("Server start port:",port)
     print("Server startup from",datetime.now())
-    print("===================")
+    print(f"----------------\n")
 
 
     while True:
         packet, clietAddress = server.recvfrom(chunkSize)
 
         # print("||Packet Encode: ",packet)
-        packet = packet.decode(errors="ignore")
-        # print("||Packet Decode: ",packet)
 
-        ea = packet.split("/",1)
+        header,content = packet.split(b'/',1)
+        header_packet = header.decode()
 
-        header_packet = ea[0]
-        content_packet = ea[1]
-
+        if header_packet == "[PUSH]":
+            content_packet = content
+        else:
+            content_packet = content.decode()
+            
         # print("||Header is: ",header_packet)
         # print("||Content is: ",content_packet)
 
 
         match header_packet:
-            case "[PCT]":                          # Connection package
-                pct_header = header_packet
-                pct_content = content_packet
+            case "[PCT]":                               # Connection package
+                pct_header = header_packet              # PCT Header
+                pct_content = content_packet            # PCT Sequence
                 terminal(pct_header+pct_content,"GET")
 
-                ct_packet = pc.createCTPacket(int(pct_content)) # Create CT Package
-                ct = ct_packet.decode().split("/")                 # Split header and content
+                ct_packet = pc.createCTPacket(int(pct_content))     # Create CT Package
+                ct = ct_packet.decode().split("/")                  # Split header and content
                 terminal(ct[0]+ct[1],"PUSH")
 
-                server.sendto(ct_packet,clietAddress)              # Sent CT Package
+                server.sendto(ct_packet,clietAddress)               # Sent CT Package
+                print(f"----------Client Connect----------")
 
             case "[PUSH]":
-                print(f"=============Recive Packet [PUSH]===============")
+                print(f"\n-------Recive Packet [PUSH]-------")
 
-                totalNumber, numberPacket, idPacket, checksum, payload = content_packet.split(":",4)
-                numberPacket = int(numberPacket)
-                # print("||Total Number Payload is: ",totalNumber)
+                totalNumber, numberPacket, idPacket, checksum, payload = content_packet.split(b":",4)
+
+                totalNumber = int(totalNumber.decode())
+                numberPacket = int(numberPacket.decode())
+                idPacket = int(idPacket.decode())
+                checksum = str(checksum.decode())
+
+                print("||Total Number Payload is: ",totalNumber)
                 print("||Packet Number: ",numberPacket)
-                print("||Id: ",idPacket)
+                # print("||Id: ",idPacket)
                 # print("||Checksum: ",checksum)
                 # print("||Payload: ",payload)
 
@@ -128,26 +165,31 @@ try:
                 file = server_file[indexFile]               # File Buffer for ID
                 #==========
                 file.addChunkByLoc(numberPacket, payload)   # Add Chunk to File Buffer
+                file.appendRecivePacketNumber(numberPacket,numberPacket)
                     
 
                 
             case "[TFC]":
-                lengthPacket, numberOfPacket, idPacket = content_packet.split(":", 3)
+                fileType, numberOfPacket, idPacket = content_packet.split(":", 3)
 
-                lengthPacket = int(lengthPacket)
+                fileType = str(fileType)
                 numberOfPacket = int(numberOfPacket)
                 idPacket = int(idPacket)
 
-                print("TFC Packet: ",lengthPacket, numberOfPacket, idPacket)
-
+                print("TFC Packet: ",fileType, numberOfPacket, idPacket)
 
                 for file in server_file:
-                    id = file.getId()
-                    print(f"file id is: {id}")
-                    print(f"file index location: {findIndex(id)}")
-                    # for i in file.getAllChunk():
-                    #     print(f"||{i}||")
+                    if (id := file.getId()) == idPacket:                # Find File Temp
+                        print(f"file id is: {id}")
+                        print(f"file index location: {findIndex(id)}")   
 
+                        vp = validatePacket(numberOfPacket,id)          # Validate if packet miss
+
+                        if len(vp) > 0: # If have Miss Packet Do [RTP]
+                            pass 
+
+                        if writeFile("compress.png",file.getAllChunk()):
+                            pass
 
                 
             case "[END]":
