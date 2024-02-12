@@ -56,7 +56,7 @@ class core:
         self.Status = None      # Status
         self.operation = None
 
-    def createChunk(self, file,type, chunk,verbose=False):  # Create Chunk of file
+    def createChunk(self, file, chunk,verbose=False):  # Create Chunk of file
         self.chunkList = []    # Chunk buffer
 
         if chunk >= 1:
@@ -64,17 +64,15 @@ class core:
         else:
             return 1
         
+        with open(file,"rb") as fi:             # Split file to packet
+            while True:
+                packet = fi.read(chunk)         # Read chunk
+                self.chunkList.append(packet)   # Push to buffer
 
-        if type == "png":                           # If type is png
-            with open(file,"rb") as fi:             # Split file to packet
-                while True:
-                    packet = fi.read(chunk)         # Read chunk
-                    self.chunkList.append(packet)   # Push to buffer
-
-                    if not packet:                  # If last chunk
-                        self.chunkList.pop()        # Delete last b''
-                        break
-            fi.close()
+                if not packet:                  # If last chunk
+                    self.chunkList.pop()        # Delete last b''
+                    break
+        fi.close()
         
         if verbose == True:                                                 # Debug if set verbos
             for _ in range(len(self.chunkList)):
