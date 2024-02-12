@@ -14,6 +14,7 @@ class operations:
 
     get = "[GET]"       # GET
     push = "[PUSH]"     # PUSH
+    rtp = "[RTP]"
 
     end = "[END]"       # END
     tfc = "[TFC]"       # Transfer Complete
@@ -47,6 +48,15 @@ class packet:
     def createTFCPacket(fileType:str, totalNumberPayload, id)-> bytearray:
         operation = operations.tfc                      # [TFC]
         return operation.encode() + b"/" + fileType.encode() + b":" + str(totalNumberPayload).encode() + b":" + str(id).encode()
+    
+    def createRTPPacket(id, listNumberpacket):          # [RTP]
+        operation = operations.rtp
+        l = ""
+
+        for _ in listNumberpacket:
+            l += ":"
+            l += str(_)
+        return operation.encode() + b"/" + str(id).encode() +l.encode()   # [RTP]/id:packerNumber:packetNumber
 
 
 
