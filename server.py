@@ -189,7 +189,7 @@ try:
                             rtp_packet = pc.createRTPPacket(id,vp)
                             server.sendto(rtp_packet, clietAddress)
 
-                        if writeFile("compress.png",file.getAllChunk()):
+                        elif writeFile("compress.png",file.getAllChunk()):
                             server.sendto(pc.createEndPacket(), clietAddress)
 
                 
