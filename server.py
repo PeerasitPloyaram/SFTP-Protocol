@@ -186,10 +186,11 @@ try:
                         vp = validatePacket(numberOfPacket,id)          # Validate if packet miss
 
                         if len(vp) > 0: # If have Miss Packet Do [RTP]
-                            pass 
+                            rtp_packet = pc.createRTPPacket(id,vp)
+                            server.sendto(rtp_packet, clietAddress)
 
                         if writeFile("compress.png",file.getAllChunk()):
-                            pass
+                            server.sendto(pc.createEndPacket(), clietAddress)
 
                 
             case "[END]":
