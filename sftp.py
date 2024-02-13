@@ -45,9 +45,9 @@ class packet:
         # ID Packet
         # [PUSH]/totalNumberPayload:packetNumber:id:checksum:payload
     
-    def createTFCPacket(fileType:str, totalNumberPayload, id)-> bytearray:
+    def createTFCPacket(fileName:str, totalNumberPayload, id)-> bytearray:
         operation = operations.tfc                      # [TFC]
-        return operation.encode() + b"/" + fileType.encode() + b":" + str(totalNumberPayload).encode() + b":" + str(id).encode()
+        return operation.encode() + b"/" + fileName.encode() + b":" + str(totalNumberPayload).encode() + b":" + str(id).encode()
     
     def createRTPPacket(id, listNumberpacket):          # [RTP]
         operation = operations.rtp
