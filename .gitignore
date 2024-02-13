@@ -1,9 +1,6 @@
 # Ignore Mac system files
 .DS_store
 
-*.png
-*.jpg
-*.txt
-*.docs
+.gitignore
 
 __pycache__/
