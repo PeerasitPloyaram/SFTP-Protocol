@@ -114,90 +114,90 @@ try:
         # print("||Header is: ",header_packet)
         # print("||Content is: ",content_packet)
 
-        match header_packet:
-            case "[PCT]":                               # Connection package
-                pct_header = header_packet              # PCT Header
-                pct_content = content_packet            # PCT Sequence
-                terminal(pct_header+pct_content,"GET")
 
-                ct_packet = pc.createCTPacket(int(pct_content))     # Create CT Package
-                ct = ct_packet.decode().split("/")                  # Split header and content
-                terminal(ct[0]+ct[1],"PUSH")
+        if header_packet == "[PCT]":                               # Connection package
+            pct_header = header_packet              # PCT Header
+            pct_content = content_packet            # PCT Sequence
+            terminal(pct_header+pct_content,"GET")
 
-                server.sendto(ct_packet,clietAddress)               # Sent CT Package
-                print(f"-----------Client Connect-----------")
+            ct_packet = pc.createCTPacket(int(pct_content))     # Create CT Package
+            ct = ct_packet.decode().split("/")                  # Split header and content
+            terminal(ct[0]+ct[1],"PUSH")
 
-            case "[PUSH]":
+            server.sendto(ct_packet,clietAddress)               # Sent CT Package
+            print(f"-----------Client Connect-----------")
+
+        elif header_packet == "[PUSH]":
                 # print(f"\n-------Recive Packet [PUSH]-------")
 
-                totalNumber, numberPacket, idPacket, checksum, payload = content_packet.split(b":",4)
+            totalNumber, numberPacket, idPacket, checksum, payload = content_packet.split(b":",4)
 
-                totalNumber = int(totalNumber.decode())
-                numberPacket = int(numberPacket.decode())
-                idPacket = int(idPacket.decode())
-                checksum = str(checksum.decode())
+            totalNumber = int(totalNumber.decode())
+            numberPacket = int(numberPacket.decode())
+            idPacket = int(idPacket.decode())
+            checksum = str(checksum.decode())
 
-                terminal(f"Packet Id[{idPacket}] Packet Number [{numberPacket}]","GET")
+            terminal(f"Packet Id[{idPacket}] Packet Number [{numberPacket}]","GET")
                 # print("||Total Number Payload is: ",totalNumber)
                 # print("||Packet Number: ",numberPacket)
                 # print("||Id: ",idPacket)
                 # print("||Checksum: ",checksum)
                 # print("||Payload: ",payload)
 
-                if not haveId(idPacket):
-                    server_file_id.append(idPacket)         # Add ID Packet to Server
-                    file = tempFile(idPacket,totalNumber)   # Create New File
-                    server_file.append(file)                # Append File to server
+            if not haveId(idPacket):
+                server_file_id.append(idPacket)         # Add ID Packet to Server
+                file = tempFile(idPacket,totalNumber)   # Create New File
+                server_file.append(file)                # Append File to server
                     
-                indexFile = findIndex(idPacket)
-                file = server_file[indexFile]               # File Buffer for ID
-                #==========
-                file.addChunkByLoc(numberPacket, payload)                   # Add Chunk to File Buffer
-                file.appendRecivePacketNumber(numberPacket,numberPacket)    # Add Packet Id to File Buffer
+            indexFile = findIndex(idPacket)
+            file = server_file[indexFile]               # File Buffer for ID
+            #==========
+            file.addChunkByLoc(numberPacket, payload)                   # Add Chunk to File Buffer
+            file.appendRecivePacketNumber(numberPacket,numberPacket)    # Add Packet Id to File Buffer
                     
-            case "[TFC]":
-                fileName, numberOfPacket, idPacket = content_packet.split(":", 3)
+        elif header_packet == "[TFC]":
+            fileName, numberOfPacket, idPacket = content_packet.split(":", 3)
 
-                fileName = str(fileName)
-                numberOfPacket = int(numberOfPacket)
-                idPacket = int(idPacket)
+            fileName = str(fileName)
+            numberOfPacket = int(numberOfPacket)
+            idPacket = int(idPacket)
 
-                terminal("[TFC]-> Transfer Complete.","GET")
+            terminal("[TFC]-> Transfer Complete.","GET")
 
-                for file in server_file:
-                    if (id := file.getId()) == idPacket:                # Find File Temp
-                        # print(f"file id is: {id}")
-                        # print(f"file index location: {findIndex(id)}")   
+            for file in server_file:
+                if (id := file.getId()) == idPacket:                # Find File Temp
+                    # print(f"file id is: {id}")
+                    # print(f"file index location: {findIndex(id)}")   
 
-                        vp = validatePacket(numberOfPacket,id)          # Validate if packet miss
+                    vp = validatePacket(numberOfPacket,id)          # Validate if packet miss
 
-                        if len(vp) > 0: # If have Miss Packet Do [RTP]
-                            terminal("Found Packet File Missing","Status:")
+                    if len(vp) > 0: # If have Miss Packet Do [RTP]
+                        terminal("Found Packet File Missing","Status:")
 
-                            rtp_packet = pc.createRTPPacket(id,vp)      # Create RTP Packet for Retransmiss
-                            server.sendto(rtp_packet, clietAddress)     # Send Back to Client
+                        rtp_packet = pc.createRTPPacket(id,vp)      # Create RTP Packet for Retransmiss
+                        server.sendto(rtp_packet, clietAddress)     # Send Back to Client
 
-                            terminal("[RTP]","PUSH")
+                        terminal("[RTP]","PUSH")
 
-                        elif writeFile(fileName,file.getAllChunk()):                # If has Validate Compress All Packet to File
-                            terminal("All Packet Has been Validate.", "Status:")
-                            terminal("Compress Packet to File", "Status:")
-                            terminal("File has been Create Successfully.", "Status:")
+                    elif writeFile(fileName,file.getAllChunk()):                # If has Validate Compress All Packet to File
+                        terminal("All Packet Has been Validate.", "Status:")
+                        terminal("Compress Packet to File", "Status:")
+                        terminal("File has been Create Successfully.", "Status:")
 
-                            indexFile = findIndex(idPacket)                     # Find Location of File in File Buffer
-                            server_file.remove(server_file[indexFile])          # Remove File in File Buffer After Successful Compress 
+                        indexFile = findIndex(idPacket)                     # Find Location of File in File Buffer
+                        server_file.remove(server_file[indexFile])          # Remove File in File Buffer After Successful Compress 
 
-                            server.sendto(pc.createEndPacket(), clietAddress)   # Send END Packet 
-                            terminal("[END]","PUSH")
+                        server.sendto(pc.createEndPacket(), clietAddress)   # Send END Packet 
+                        terminal("[END]","PUSH")
 
                 
-            case "[END]":
-                terminal("[END]","GET")
-                terminal("Server has been stop.")
-                break
+        elif header_packet == "[END]":
+            terminal("[END]","GET")
+            terminal("Server has been stop.")
+            break
 
-            case _:
-                print("[OPERATION ERROR]")
+        else:
+            print("[OPERATION ERROR]")
 
 except:
     print("[ERROR]")
