@@ -21,6 +21,9 @@ class operations:
     err = "[ERROR]"     # Error
 
 class packet:
+
+    def genPacketId():
+        return str(randrange(1,9999))
     # Create PCT Packet
     def createPCTPacket()-> bytearray:
         operation = operations.pct                      # [PCT]
