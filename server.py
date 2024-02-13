@@ -65,7 +65,7 @@ def validatePacket(validate, idTempFile):
 
 
 if __name__ != "__main__":
-    exit
+    exit(0)
 
 
 for arg in range(1,len(sys.argv)):  # Argument
@@ -107,8 +107,9 @@ server_file = []    # Save File Comming
 try:
     print("Server start port:",port)
     print("Server startup from",datetime.now())
-    print(f"----------------\n")
+    print(f"------------------------------------")
 
+    print(f"-------Wait for Recive Packet-------")
 
     while True:
         packet, clietAddress = server.recvfrom(chunkSize)
@@ -126,7 +127,6 @@ try:
         # print("||Header is: ",header_packet)
         # print("||Content is: ",content_packet)
 
-
         match header_packet:
             case "[PCT]":                               # Connection package
                 pct_header = header_packet              # PCT Header
@@ -138,10 +138,10 @@ try:
                 terminal(ct[0]+ct[1],"PUSH")
 
                 server.sendto(ct_packet,clietAddress)               # Sent CT Package
-                print(f"----------Client Connect----------")
+                print(f"-----------Client Connect-----------")
 
             case "[PUSH]":
-                print(f"\n-------Recive Packet [PUSH]-------")
+                # print(f"\n-------Recive Packet [PUSH]-------")
 
                 totalNumber, numberPacket, idPacket, checksum, payload = content_packet.split(b":",4)
 
@@ -150,8 +150,9 @@ try:
                 idPacket = int(idPacket.decode())
                 checksum = str(checksum.decode())
 
-                print("||Total Number Payload is: ",totalNumber)
-                print("||Packet Number: ",numberPacket)
+                terminal(f"Packet Id[{idPacket}] Packet Number [{numberPacket}]","GET")
+                # print("||Total Number Payload is: ",totalNumber)
+                # print("||Packet Number: ",numberPacket)
                 # print("||Id: ",idPacket)
                 # print("||Checksum: ",checksum)
                 # print("||Payload: ",payload)
@@ -170,27 +171,38 @@ try:
 
                 
             case "[TFC]":
-                fileType, numberOfPacket, idPacket = content_packet.split(":", 3)
+                fileName, numberOfPacket, idPacket = content_packet.split(":", 3)
 
-                fileType = str(fileType)
+                fileName = str(fileName)
                 numberOfPacket = int(numberOfPacket)
                 idPacket = int(idPacket)
 
-                print("TFC Packet: ",fileType, numberOfPacket, idPacket)
+                # print("TFC Packet: ",fileName, numberOfPacket, idPacket)
+                terminal("[TFC]-> Transfer Complete.","GET")
 
                 for file in server_file:
                     if (id := file.getId()) == idPacket:                # Find File Temp
-                        print(f"file id is: {id}")
-                        print(f"file index location: {findIndex(id)}")   
+                        # print(f"file id is: {id}")
+                        # print(f"file index location: {findIndex(id)}")   
 
                         vp = validatePacket(numberOfPacket,id)          # Validate if packet miss
 
                         if len(vp) > 0: # If have Miss Packet Do [RTP]
+                            terminal("Found Packet File Missing","Status:")
+                            print(vp)
+
                             rtp_packet = pc.createRTPPacket(id,vp)
                             server.sendto(rtp_packet, clietAddress)
 
-                        elif writeFile("compress.png",file.getAllChunk()):
+                            terminal("[RTP]","PUSH")
+
+                        elif writeFile(fileName,file.getAllChunk()):
+                            terminal("All Packet Has been Validate.", "Status:")
+                            terminal("Compress Packet to File", "Status:")
+                            terminal("File has been Create Successfully.", "Status:")
+
                             server.sendto(pc.createEndPacket(), clietAddress)
+                            terminal("[END]","PUSH")
 
                 
             case "[END]":
@@ -201,19 +213,5 @@ try:
             case _:
                 print("[OPERATION ERROR]")
 
-
-        # if packet == b'END...':
-        #     terminal("[END]") # In testing
-        #     f = open("Compress.png","wb")
-
-        #     for i in range(len(buffer)):
-        #         buff = buffer[i]
-        #         f.write(buff)
-        #     f.close
-        #     buffer.clear()
-        #     continue
-
-        # terminal(package)
-        # buffer.append(packet)  
 except:
     print(Exception())
