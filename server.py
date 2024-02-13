@@ -2,9 +2,11 @@ from socket import *
 from datetime import datetime
 from sftp import packet as pc
 import sys
-import os
 
+'''
+Create By: Peerasit Ployaram
 
+'''
 
 port = 13000            # Default Port
                         # 1024 = 1KB
@@ -16,17 +18,7 @@ def terminal(message,operation=None)-> None:
         print(datetime.now().strftime("%H:%M:%S"),": ",message)
     else: print(datetime.now().strftime("%H:%M:%S"),": ",operation, message)
 
-
-def debugPacket(content:bytearray,)-> None:
-        totalNumber, numberPacket, id, checksum, payload = content.split(":",4)
-        print(f"------------------Recive Packet [PUSH]------------------")
-        print("||Total Number Payload is: ",totalNumber)
-        print("||Packet Number: ",numberPacket)
-        print("||Id: ",id)
-        print("||Checksum: ",checksum)
-        # print("||Payload: ",payload)
-
-def haveId(id):                 # Check Id in Server File ID
+def haveId(id):                             # Check Id in Server File ID
     for _ in server_file_id:
         if id == _:
             return 1
@@ -48,7 +40,7 @@ def writeFile(filename, allChunk)->None:    # Compress file
     except:
         return 0
     finally:
-        f.close
+        f.close()
 
 def validatePacket(validate, idTempFile):
     re_packet = []                              # Buffer ReTransmit Packet
@@ -56,24 +48,19 @@ def validatePacket(validate, idTempFile):
     f = file.getAllRecivePacketNumber()         # Get All Packet Number Recive
 
     for _ in range(validate):
-        # print(f[_], _)
         if f[_] != _:
-            re_packet.append(_)
-            
+            re_packet.append(_)     
     return re_packet
 
 
 
-if __name__ != "__main__":
+if __name__ != "__main__":          # If Not Run By Main
     exit(0)
 
 
 for arg in range(1,len(sys.argv)):  # Argument
-    if (sys.argv[arg] == "-p" or sys.argv[arg] == "--port"):
+    if (sys.argv[arg] == "-p" or sys.argv[arg] == "--port"): # -p, --port
         port = int(sys.argv[arg + 1])
-
-    if (sys.argv[arg] == "-t" or sys.argv[arg] == "--test"):
-         pass
 
 server = socket(AF_INET,SOCK_DGRAM) # UDP
 server.bind(("",port))              # Bind Port 
@@ -101,7 +88,7 @@ class tempFile():       # File for Save Information Packet
     def getId(self): return self.id
         
 
-server_file = []    # Save File Comming
+server_file = []    # Save File Information From Client
 
 
 try:
@@ -165,11 +152,9 @@ try:
                 indexFile = findIndex(idPacket)
                 file = server_file[indexFile]               # File Buffer for ID
                 #==========
-                file.addChunkByLoc(numberPacket, payload)   # Add Chunk to File Buffer
-                file.appendRecivePacketNumber(numberPacket,numberPacket)
+                file.addChunkByLoc(numberPacket, payload)                   # Add Chunk to File Buffer
+                file.appendRecivePacketNumber(numberPacket,numberPacket)    # Add Packet Id to File Buffer
                     
-
-                
             case "[TFC]":
                 fileName, numberOfPacket, idPacket = content_packet.split(":", 3)
 
@@ -177,7 +162,6 @@ try:
                 numberOfPacket = int(numberOfPacket)
                 idPacket = int(idPacket)
 
-                # print("TFC Packet: ",fileName, numberOfPacket, idPacket)
                 terminal("[TFC]-> Transfer Complete.","GET")
 
                 for file in server_file:
@@ -189,19 +173,21 @@ try:
 
                         if len(vp) > 0: # If have Miss Packet Do [RTP]
                             terminal("Found Packet File Missing","Status:")
-                            print(vp)
 
-                            rtp_packet = pc.createRTPPacket(id,vp)
-                            server.sendto(rtp_packet, clietAddress)
+                            rtp_packet = pc.createRTPPacket(id,vp)      # Create RTP Packet for Retransmiss
+                            server.sendto(rtp_packet, clietAddress)     # Send Back to Client
 
                             terminal("[RTP]","PUSH")
 
-                        elif writeFile(fileName,file.getAllChunk()):
+                        elif writeFile(fileName,file.getAllChunk()):                # If has Validate Compress All Packet to File
                             terminal("All Packet Has been Validate.", "Status:")
                             terminal("Compress Packet to File", "Status:")
                             terminal("File has been Create Successfully.", "Status:")
 
-                            server.sendto(pc.createEndPacket(), clietAddress)
+                            indexFile = findIndex(idPacket)                     # Find Location of File in File Buffer
+                            server_file.remove(server_file[indexFile])          # Remove File in File Buffer After Successful Compress 
+
+                            server.sendto(pc.createEndPacket(), clietAddress)   # Send END Packet 
                             terminal("[END]","PUSH")
 
                 
@@ -214,4 +200,5 @@ try:
                 print("[OPERATION ERROR]")
 
 except:
-    print(Exception())
+    print("[ERROR]")
+    exit(1)
