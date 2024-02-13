@@ -1,8 +1,10 @@
-import sys
-import time
 from random import randrange
 from socket import *
 
+'''
+Create By: Peerasit Ployaram
+
+'''
 # Random number from 0 - 98
 # Retrive number in range 1 - 99
 def randomSequence()-> str:return str(randrange(0,98))
