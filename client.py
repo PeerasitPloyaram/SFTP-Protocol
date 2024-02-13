@@ -4,14 +4,12 @@ from sftp import packet as packet
 from sftp import core as core
 import sys
 import re
-import time
-import os
 
 # Config
 server_name = 'localhost'
-port = 13000
-chunkSize = 4096
-timeOut = 5
+port = 13000        # Port Default
+chunkSize = 4096    # 4Kb Default
+timeOut = 5         # Time out
 
 # Flags
 connect = False     # Is connecting
@@ -38,32 +36,31 @@ def terminal(message,operation=None):
     else: print(datetime.now().strftime("%H:%M:%S"),": ",operation, message)
 
 # Init client
-client_socket = socket(AF_INET, SOCK_DGRAM) # UDP
+client_socket = socket(AF_INET, SOCK_DGRAM) # UDP Transport
 client_socket.settimeout(timeOut)           # Set Time Out
 
-list_file_name = []
+list_file_name = [] # Handle Multiple File for Transfer
 
 for arg in range(1,len(sys.argv)):  # Argument
 
-    if ((sys.argv[arg] == "-p" or sys.argv[arg] == "--port") and (re.match("[0-9]+",sys.argv[arg + 1]))):
+    if ((sys.argv[arg] == "-p" or sys.argv[arg] == "--port") and (re.match("[0-9]+",sys.argv[arg + 1]))):   # -p, --port
         try:
             port = int(sys.argv[arg + 1])
         except:
             print(f"[ERROR] Port Argument Require Integer not String.")
             exit(1)
 
-    elif (sys.argv[arg] == "-t" or sys.argv[arg] == "--test"):
+    elif (sys.argv[arg] == "-t" or sys.argv[arg] == "--test"):  # -t, --test
         argv_test = 1
 
-    elif re.match("[/a-zA-Z]",sys.argv[arg]):
+    elif re.match("[/a-zA-Z]",sys.argv[arg]):   # Path File Name
         file_name = sys.argv[arg]
-        # print(sys.argv[arg])
         list_file_name.append(file_name)
 
 
-if len(list_file_name) == 0 and argv_test:
-    con_packet = packet.createPCTPacket()   # Create PCT
-    try:    # Connection Establishment
+if len(list_file_name) == 0 and argv_test:              # If Have Only -t, --test
+    con_packet = packet.createPCTPacket()               # Create PCT
+    try:                                                # Connection Establishment
         terminal(f"-----Try to Connect to Server-----")
         c_packet = con_packet.decode().split("/")
         terminal(c_packet[0] + c_packet[1],"PUSH")
@@ -78,18 +75,14 @@ if len(list_file_name) == 0 and argv_test:
             if connect :
                 exit(0)
         
-    except timeout:
+    except timeout:     # Time Out
         terminal("Can't connect to server because server not response.", operations["ERR"])
         exit(1)
     exit(1)
-elif len(list_file_name) == 1 and argv_test:
+
+elif len(list_file_name) == 1 and argv_test:                # IF Have Path File Name With Argument -t, --test
     print("[ERROR] Can't Use File With Argument --test.")
     exit(1)
-
-
-
-# file_name = "pic.png"
-# path = "/Users/peerasit/ku_study/network/projectProtocol/testing/"
 
 
 # Connection Phase
@@ -107,37 +100,34 @@ try:    # Connection Establishment
         connectId = message[1]                      # CT Sequence
         terminal(message[0] + message[1], "GET")
 
-except timeout:
+except timeout:     # Time Out
     terminal("Can't connect to server because server not response.", operations["ERR"])
     exit(1)
 
-# Main
+# Main Phase
 if connect: # If Connect to Server
     terminal("-----Client Connected To Server-----")
 
-    for file_name in list_file_name:
+    for file_name in list_file_name:    # Loop File Transfer
 
         # Create file chunk
-        # file = path + file_name
-        file = file_name
-        path_file = file_name.split("/")
-        file_id = packet.genPacketId()
-        core.createChunk(core,file,chunk=chunkSize,verbose=False)    # Create packet to send
+        file = file_name                                                # Path File Name
+        path_file = file_name.split("/")                                # Path File
+        file_id = packet.genPacketId()                                  # Gen File ID Packet
+        core.createChunk(core,file,chunk=chunkSize,verbose=False)       # Create Chunk of File
 
 
-
-        temp_total_payload = core.getChunkCount(core)
+        temp_total_payload = core.getChunkCount(core)           # Get All Chunk of File
         for packet_number in range(temp_total_payload):
-            buffer = core.getChunkById(core, packet_number)
-            id, pk = packet.createPacket(temp_total_payload,packet_number ,file_id, 1101,buffer)    
+            buffer = core.getChunkById(core, packet_number)     # Create Payload
+            id, pk = packet.createPacket(temp_total_payload,packet_number ,file_id, 1101,buffer)    # Create Packet and Return IDPacket, Packet
 
-            client_socket.sendto(pk,(server_name,port))
-            # print(f"PUSH Packet ID {id} Number {packet_number}.")
+            client_socket.sendto(pk,(server_name,port))         # Send to Server
             o = f"PUSH Packet Id {id} Number {packet_number}"
 
             terminal(o)
         ##
-        client_socket.sendto(packet.createTFCPacket(path_file[len(path_file) - 1],temp_total_payload, file_id),(server_name, port))
+        client_socket.sendto(packet.createTFCPacket(path_file[len(path_file) - 1],temp_total_payload, file_id),(server_name, port)) # Send TFC Packet to Server
         terminal("[TFC]","PUSH")
 
         # Wait Response from Server
@@ -155,7 +145,6 @@ if connect: # If Connect to Server
                     p = num.split(":")              # Split Number Packet
 
                     for numberPacket in p:
-                        # print(numberPacket)
                         numberPacket = int(numberPacket)                # Str to int
                         chunk = core.getChunkById(core, numberPacket)   # get Chunk by Id
                         id, pk = packet.createPacket(temp_total_payload,numberPacket ,file_id, 1101,chunk)  # Create Packet
@@ -175,5 +164,5 @@ if connect: # If Connect to Server
                 case _: # Error
                     terminal("[OPERATION ERROR]")
     terminal("-----Client Disconnect From Server-----")
-    client_socket.close()
+    client_socket.close()   # Close Connection
 
