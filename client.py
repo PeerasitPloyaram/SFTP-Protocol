@@ -141,33 +141,32 @@ if connect: # If Connect to Server
             header,content = message.split(b'/',1)
             header = header.decode()
 
-            match header:
-                case "[RTP]":   # RTP Packet
-                    terminal("[RTP]<- Packet Missing","GET")
+            if header =="[RTP]":   # RTP Packet
+                terminal("[RTP]<- Packet Missing","GET")
 
-                    content = content.decode()
-                    id, num = content.split(":",1)  # Split to Id and List Number Packet
-                    p = num.split(":")              # Split Number Packet
+                content = content.decode()
+                id, num = content.split(":",1)  # Split to Id and List Number Packet
+                p = num.split(":")              # Split Number Packet
 
-                    for numberPacket in p:
-                        numberPacket = int(numberPacket)                # Str to int
-                        chunk = core.getChunkById(core, numberPacket)   # get Chunk by Id
-                        id, pk = packet.createPacket(temp_total_payload,numberPacket ,file_id, 1101,chunk)  # Create Packet
+                for numberPacket in p:
+                    numberPacket = int(numberPacket)                # Str to int
+                    chunk = core.getChunkById(core, numberPacket)   # get Chunk by Id
+                    id, pk = packet.createPacket(temp_total_payload,numberPacket ,file_id, 1101,chunk)  # Create Packet
 
-                        client_socket.sendto(pk,(server_name,port))     # Resend Missing Packet to Server
+                    client_socket.sendto(pk,(server_name,port))     # Resend Missing Packet to Server
 
-                        o = f"PUSH Packet Id {id} Number {numberPacket}"
-                        terminal(o)
+                    o = f"PUSH Packet Id {id} Number {numberPacket}"
+                    terminal(o)
             
-                    client_socket.sendto(packet.createTFCPacket(path_file[len(path_file) - 1],temp_total_payload, file_id),(server_name, port)) # Send TFC Packet to Server
-                    terminal("[TFC]","PUSH")
+                client_socket.sendto(packet.createTFCPacket(path_file[len(path_file) - 1],temp_total_payload, file_id),(server_name, port)) # Send TFC Packet to Server
+                terminal("[TFC]","PUSH")
 
-                case "[END]":   # END Packet
-                    terminal("[END]","GET")
-                    break
+            elif header == "[END]":   # END Packet
+                terminal("[END]","GET")
+                break
 
-                case _: # Error
-                    terminal("[OPERATION ERROR]")
+            else: # Error
+                terminal("[OPERATION ERROR]")
     terminal("-----Client Disconnect From Server-----")
     client_socket.close()   # Close Connection
 
