@@ -7,12 +7,14 @@ SFTP is a protocol for transfer files from Client to Server
 
     PCT Packet Format
 
+    ```
     +------------+
     | PCT Packet |
     +------------+
     | [PCT]/     |
     | Sequence   |
     +------------+
+    ```
 
 
     - [PCT]/SequencNumber 
@@ -21,12 +23,14 @@ SFTP is a protocol for transfer files from Client to Server
 2. CT คือ Contact เป็น packet ที่ใช้ในการบอกการเชื่อมต่อระหว่าง Server กับ Client เสร็จสิ้น โดย Server จะเป็นคนส่ง CT Packet ไปให้ Client
 
     CT Packet Format
+    ```
     +--------------+
     |  CT Packet   |
     +--------------+
     | [CT]/        |
     | Sequence + 1 |
     +--------------+
+    ```
     - [CT]/SequencNumber + 1
 <br>
 
