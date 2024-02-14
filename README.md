@@ -7,6 +7,8 @@ It can transfer file in any types file, such as
 -   Executable File
 -   Video      -> MKV, MOV
 
+(For now can work only on MacOS, Linux and Unix, Window has a problem remote host)
+
 Create Bye Peerasit Ployaram 6410451237
 
 # Thai Document
