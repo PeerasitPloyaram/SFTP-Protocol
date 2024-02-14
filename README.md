@@ -2,39 +2,43 @@
 SFTP is a protocol for transfer files from Client to Server in one way (Client to Server Only)
 
 It can transfer file in any types file, such as
--   Text File  -> txt, py, c, ipynb
--   Image FIle -> PNG, JPG, HEIC
+-   Text File
+    - .txt, .py, .c, i.pynb
+-   Image FIle  
+    - .PNG, .JPG, .HEIC
 -   Executable File
--   Video      -> MKV, MOV
+-   Video
+    - .MKV, .MOV
 
 (For now can work only on MacOS, Linux and Unix, Window has a problem remote host)
 
-Create Bye Peerasit Ployaram 6410451237
+Create By Peerasit Ployaram 6410451237
 
 # Thai Document
 
 ## SFTP Phases
 1. Connection Phase
     - ทำ Establish Connection ระหว่าง Client กับ Server
-    - Client สร้าง PCT Packet และส่งไปยัง Server
-    - Server รับ PCT Packet และ ส่ง CT Packet กลับไปยัง Client
+        - Client สร้าง PCT Packet และส่งไปยัง Server
+        - Server รับ PCT Packet และ ส่ง CT Packet กลับไปยัง Client
 
 2. Transfering Phase
-    - Client แบ่งFileออกเป็นChunk และสร้างIdสำหรับfileนั้น
-    - Client สร้่างPacket ที่มี IDPacket, Chunk
+    - Client แบ่งFileออกเป็นChunk และสร้างIdสำหรับFileนั้น
+    - Client สร้างPacket ที่มี IDPacket, Chunk
     - Client ส่ง Packet ไปยัง Server
     - Client สร้าง TFC Packet และ ส่งไปยัง Server
         
 3. Validate and Compress Phase
     - Server รับPacket และValidate
-    - หากถูกต้องCompress Fileออกมา พร้อมส่ง END Packet ไปยัง Clint
-    - หากไม่ถูกต้อ ส่ง RTP Packet ไปยังClientและกลับไปทำTransfering Phase ใหม่
+    - หากถูกต้องCompress Fileออกมา พร้อมส่ง END Packet ไปยัง Client
+    - หากไม่ถูกต้อง ส่ง RTP Packet ไปยังClientและกลับไปทำTransfering Phase ใหม่
 
 
 <br>
 
 ## SFTP Operations and Packet Format
-1. PCT คือ PreContact เป็น Packet ที่ใช้ในการขอการเชื่อมต่อ connection ระหว่าง Client กับ Server โดย Client จะส่ง PCT Packet ไปให้ Server เพื่อขอเปิด connection (Establish Connection) (Conection Phase)
+1. PCT คือ PreContact เป็น Packet ที่ใช้ในการขอการเชื่อมต่อ connection ระหว่าง Client กับ Server โดย Client จะส่ง PCT Packet ไปให้ Server เพื่อขอเปิด connection
+(Establish Connection) (Conection Phase)
 
     PCT Packet Format
 
@@ -73,7 +77,7 @@ Create Bye Peerasit Ployaram 6410451237
     ```
 <br>
 
-4. PUSH คือ Operation ที่บอกว่าเปฌนการส่ง Packet ออกไป
+4. PUSH คือ Operation ที่บอกว่าเป็นการส่ง Packet ออกไป
     โดย ทั้ง Server และ Client เป็นคนใช้
     ```
     #เช่น PUSH [PCT]/Sequence, PUSH [CT]/Sequence + 1, PUSH [TFC]
