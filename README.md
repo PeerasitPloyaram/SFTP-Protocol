@@ -360,3 +360,8 @@ Server startup from 2024-02-14 14:57:25.372363
     15:02:42 :  GET [END]
     15:02:42 :  -----Client Disconnect From Server-----
     ```
+
+# SFTP Diagram
+<p align="center">
+  <img src="/testing/Protocol-Diagram.jpg" width="100%" title="hover text">
+</p>
