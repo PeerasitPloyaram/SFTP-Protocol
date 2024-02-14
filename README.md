@@ -168,20 +168,20 @@ Comming Soon.
 
 ```Bash
 # Server
-python3 server.py -p 35000
+$ python3 server.py -p 35000
 #OR
-python3 server.py --port 35000
+$ python3 server.py --port 35000
 
 
 # Client
-python3 client.py filename -p 35000
+$ python3 client.py filename -p 35000
 # OR
-python3 client.py filename --port 35000
+$ python3 client.py filename --port 35000
 
 ```
 
 # SFTP Client Test
-- User ```-t``` or ```--test``` for test connection between Client and Server 
+- Use ```-t``` or ```--test``` for test connection between Client and Server 
 (Connection Phase)
 ```$ python3 client.py -p 13000 --test```
 <br>
@@ -208,45 +208,45 @@ python3 client.py filename --port 35000
 
 # SFTP Example File Transfer
 - Server
-```Bash
-$ python3 server.py
-Server start port: 13000
-Server startup from 2024-02-14 14:57:25.372363
-------------------------------------
--------Wait for Recive Packet-------
-14:58:02 :  GET [PCT]42
-14:58:02 :  PUSH [CT]43
------------Client Connect-----------
-14:58:02 :  GET Packet Id[5510] Packet Number [0]
-14:58:02 :  GET Packet Id[5510] Packet Number [1]
-14:58:02 :  GET Packet Id[5510] Packet Number [2]
-14:58:02 :  GET Packet Id[5510] Packet Number [3]
-14:58:02 :  GET Packet Id[5510] Packet Number [4]
-14:58:02 :  GET Packet Id[5510] Packet Number [5]
-14:58:02 :  GET Packet Id[5510] Packet Number [6]
-14:58:02 :  GET Packet Id[5510] Packet Number [7]
-14:58:02 :  GET Packet Id[5510] Packet Number [8]
-14:58:02 :  GET Packet Id[5510] Packet Number [9]
-14:58:02 :  GET Packet Id[5510] Packet Number [10]
-14:58:02 :  GET Packet Id[5510] Packet Number [11]
-14:58:02 :  GET Packet Id[5510] Packet Number [12]
-14:58:02 :  GET Packet Id[5510] Packet Number [13]
-14:58:02 :  GET Packet Id[5510] Packet Number [14]
-14:58:02 :  GET Packet Id[5510] Packet Number [15]
-14:58:02 :  GET Packet Id[5510] Packet Number [16]
-14:58:02 :  GET Packet Id[5510] Packet Number [17]
-14:58:02 :  GET Packet Id[5510] Packet Number [18]
-14:58:02 :  GET Packet Id[5510] Packet Number [19]
-14:58:02 :  GET Packet Id[5510] Packet Number [20]
-14:58:02 :  GET Packet Id[5510] Packet Number [21]
-14:58:02 :  GET Packet Id[5510] Packet Number [22]
-14:58:02 :  GET Packet Id[5510] Packet Number [23]
-14:58:02 :  GET [TFC]-> Transfer Complete.
-14:58:02 :  Status: All Packet Has been Validate.
-14:58:02 :  Status: Compress Packet to File
-14:58:02 :  Status: File has been Create Successfully.
-14:58:02 :  PUSH [END]
-```
+    ```Bash
+    $ python3 server.py
+    Server start port: 13000
+    Server startup from 2024-02-14 14:57:25.372363
+    ------------------------------------
+    -------Wait for Recive Packet-------
+    14:58:02 :  GET [PCT]42
+    14:58:02 :  PUSH [CT]43
+    -----------Client Connect-----------
+    14:58:02 :  GET Packet Id[5510] Packet Number [0]
+    14:58:02 :  GET Packet Id[5510] Packet Number [1]
+    14:58:02 :  GET Packet Id[5510] Packet Number [2]
+    14:58:02 :  GET Packet Id[5510] Packet Number [3]
+    14:58:02 :  GET Packet Id[5510] Packet Number [4]
+    14:58:02 :  GET Packet Id[5510] Packet Number [5]
+    14:58:02 :  GET Packet Id[5510] Packet Number [6]
+    14:58:02 :  GET Packet Id[5510] Packet Number [7]
+    14:58:02 :  GET Packet Id[5510] Packet Number [8]
+    14:58:02 :  GET Packet Id[5510] Packet Number [9]
+    14:58:02 :  GET Packet Id[5510] Packet Number [10]
+    14:58:02 :  GET Packet Id[5510] Packet Number [11]
+    14:58:02 :  GET Packet Id[5510] Packet Number [12]
+    14:58:02 :  GET Packet Id[5510] Packet Number [13]
+    14:58:02 :  GET Packet Id[5510] Packet Number [14]
+    14:58:02 :  GET Packet Id[5510] Packet Number [15]
+    14:58:02 :  GET Packet Id[5510] Packet Number [16]
+    14:58:02 :  GET Packet Id[5510] Packet Number [17]
+    14:58:02 :  GET Packet Id[5510] Packet Number [18]
+    14:58:02 :  GET Packet Id[5510] Packet Number [19]
+    14:58:02 :  GET Packet Id[5510] Packet Number [20]
+    14:58:02 :  GET Packet Id[5510] Packet Number [21]
+    14:58:02 :  GET Packet Id[5510] Packet Number [22]
+    14:58:02 :  GET Packet Id[5510] Packet Number [23]
+    14:58:02 :  GET [TFC]-> Transfer Complete.
+    14:58:02 :  Status: All Packet Has been Validate.
+    14:58:02 :  Status: Compress Packet to File
+    14:58:02 :  Status: File has been Create Successfully.
+    14:58:02 :  PUSH [END]
+    ```
 
 - Client
     ```Bash
